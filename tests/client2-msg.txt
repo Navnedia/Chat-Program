@@ -1,2 +1,0 @@
-client2
-hello from client2

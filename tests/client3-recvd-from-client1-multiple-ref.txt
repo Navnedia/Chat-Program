@@ -1,3 +1,0 @@
-client1: hello from client1
-client1: nice day to chat
-client1: gotcha

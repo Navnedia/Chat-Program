@@ -1,4 +1,0 @@
-client5
-hello from client5
-truly
-working well

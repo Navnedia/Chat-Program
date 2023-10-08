@@ -420,3 +420,4 @@ pip-selfcheck.json
 # End of https://www.toptal.com/developers/gitignore/api/git,intellij,java,pycharm,python,venv
 
 notes.md
+tests

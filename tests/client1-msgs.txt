@@ -1,4 +1,0 @@
-client1
-hello from client1
-nice day to chat
-gotcha
