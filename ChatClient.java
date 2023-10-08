@@ -27,7 +27,7 @@ public class ChatClient {
     public static void main(String[] args) {
         String host = "localhost";
         int port = 0;
-
+        
         // Parse command line arguments to extract run configuration:
         try {
             if (args.length < 1 || args.length > 2) { printUsage(); }
@@ -45,7 +45,6 @@ public class ChatClient {
         try {
             System.out.println("Waiting for request from server...");
             Socket clientSocket = new Socket(host, port); // Create socket and connect to server on the specified host/port.
-
             setUsername(clientSocket); // Get username and sent it to the server.
 
             // Start the socket connection workers to send and receive data from the socket connection:
