@@ -421,3 +421,4 @@ pip-selfcheck.json
 
 notes.md
 tests
+!tests/build.sh
