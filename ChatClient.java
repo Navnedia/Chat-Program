@@ -6,7 +6,8 @@ import java.net.Socket;
 
 /**
  * A simple chat client application for connecting to a {@link ChatServer}
- * over a {@link Socket} connection.
+ * over a {@link Socket} connection. The chat client supports two-way communication
+ * using multi-threading to both send and receive messages at the same time.
  * <br><br>
  * <strong>Program Usage:</strong>
  * <ol>
@@ -27,10 +28,10 @@ public class ChatClient {
     public static void main(String[] args) {
         String host = "localhost";
         int port = 0;
-        
+
         // Parse command line arguments to extract run configuration:
         try {
-            if (args.length < 1 || args.length > 2) { printUsage(); }
+            if (args.length != 1 && args.length != 2) { printUsage(); }
 
             port = Integer.parseInt(args[0]);
             if (args.length == 2) {
@@ -44,7 +45,7 @@ public class ChatClient {
         // start the chat functionality.
         try {
             System.out.println("Waiting for request from server...");
-            Socket clientSocket = new Socket(host, port); // Create socket and connect to server on the specified host/port.
+            Socket clientSocket = new Socket(host, port); // Create socket and connect to the chat server on the specified host/port.
             setUsername(clientSocket); // Get username and sent it to the server.
 
             // Start the socket connection workers to send and receive data from the socket connection:
