@@ -425,3 +425,4 @@ notes.md
 !tests/autograde-chat-with-files.tar
 !tests/*.tar
 tests
+client*
