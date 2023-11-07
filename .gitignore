@@ -421,7 +421,9 @@ pip-selfcheck.json
 
 notes.md
 tests
-client*/
+client1
+client2
+client3
 !tests/build.sh
 !tests/tests-chat.tar
 !tests/autograde-chat-with-files.tar
