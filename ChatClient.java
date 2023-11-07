@@ -14,8 +14,10 @@ import java.net.Socket;
  *     <li>Compile the code using:
  *          <strong>{@code javac ChatClient.java}</strong>.
  *     </li>
- *     <li>Run the client with the port and host of the server:
- *          <strong>{@code java ChatClient <port> [host]}</strong>.
+ *     <li>Run the client by first supplying a listening port to send and receive files on.
+ *          Then specify the desired port and host of the chat server you wish to connect to:<br>
+ *          <strong>{@code java MessengerWithFiles -l <listening port number> -p <connect server port>
+ *              [-s] [connect server address]}</strong>.
  *     </li>
  *     <li>Enter a client username when prompted.</li>
  *     <li>Now you can start chatting.</li>
@@ -25,27 +27,27 @@ import java.net.Socket;
  */
 public class ChatClient {
 
+    /** Local port to listen for incoming connections. */
+    private static int listenPort = -1;
+    /** Remote chat server port to connect to. */
+    private static int serverPort = -1;
+    /** Remote server host address to connect to. */
+    private static String serverHost = "localhost";
+
     public static void main(String[] args) {
-        String host = "localhost";
-        int port = 0;
-
-        // Parse command line arguments to extract run configuration:
-        try {
-            if (args.length != 1 && args.length != 2) { printUsage(); }
-
-            port = Integer.parseInt(args[0]);
-            if (args.length == 2) {
-                host = args[1];
-            }
-        } catch (NumberFormatException e) {
-            printUsage();
-        }
+        parseArguments(args); // Parse command line arguments to extract run configuration.
 
         // Create socket connection to the server and run threads for simultaneous sending/receiving:
         // start the chat functionality.
         try {
-            System.out.println("Waiting for request from server...");
-            Socket clientSocket = new Socket(host, port); // Create socket and connect to the chat server on the specified host/port.
+            System.out.println("Waiting for request from server..."); //! DO I NEED THIS?
+            Socket clientSocket = new Socket(serverHost, serverPort); // Create socket and connect to the chat server on the specified host/port.
+
+//            ServerSocket serverSocket = new ServerSocket(listenPort); // Create local listen server for file requests.
+//            // Forward local server port number to the other side:
+//            DataOutputStream socketOut = new DataOutputStream(clientSocket.getOutputStream());
+//            socketOut.writeInt(listenPort);
+
             setUsername(clientSocket); // Get username and sent it to the server.
 
             // Start the socket connection workers to send and receive data from the socket connection:
@@ -82,6 +84,38 @@ public class ChatClient {
         if ((message = stdinBuffer.readLine()) != null) {
             socketOut.writeUTF(message);
             System.out.println("Sending name to server...");
+        }
+    }
+
+    /**
+     * Parse the command line arguments to extract run configuration arguments. Options can be
+     * in any order, but must follow the usage guidelines and include the flag argument value
+     * immediately after the flag.
+     *
+     * @param args an array of the command line arguments.
+     */
+    public static void parseArguments(String[] args) {
+        try {
+            for (int i = 0; i < args.length; i++) {
+                switch (args[i]) {
+                    case "-l": // Listening port (required):
+                        listenPort = Integer.parseInt(args[++i]);
+                        break;
+                    case "-p": // Connect Server port (required for client):
+                        serverPort = Integer.parseInt(args[++i]);
+                        break;
+                    case "-s": // Connect Server address (optional for client):
+                        if (args[++i].startsWith("-")) { printUsage(); }
+                        serverHost = args[i];
+                        break;
+                    default: // Error case, if it doesn't match one of the flag the command is invalid syntax.
+                        printUsage();
+                        break;
+                }
+            }
+            if (listenPort == -1 || serverPort == -1) { printUsage(); } // Ensure the required arguments are supplied.
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            printUsage();
         }
     }
 

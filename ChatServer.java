@@ -24,23 +24,24 @@ import java.util.ArrayList;
  */
 public class ChatServer {
 
+    /** Local port to listen for incoming connections. */
+    private static int listenPort = -1;
     /** A list of all active chat client socket connections. */
     public static final ArrayList<Socket> connectedClients = new ArrayList<>();
 
     @SuppressWarnings("InfiniteLoopStatement")
     public static void main(String[] args) {
         // Parse port number from command line arguments:
-        int port = 0;
         try {
             if (args.length != 1) { printUsage(); }
-            port = Integer.parseInt(args[0]);
+            listenPort = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
             printUsage();
         }
 
         // Create server socket, bind to port, and start listening for socket connections.
         // Track active chat client connections, and spin up a thread to handle messages from the client:
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        try (ServerSocket serverSocket = new ServerSocket(listenPort)) {
             while (true) { // Wait for new connections repeating forever.
                 Socket clientSocket = serverSocket.accept(); // Accept incoming connections and get client socket.
                 synchronized (connectedClients) {
