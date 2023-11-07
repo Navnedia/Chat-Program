@@ -420,11 +420,9 @@ pip-selfcheck.json
 # End of https://www.toptal.com/developers/gitignore/api/git,intellij,java,pycharm,python,venv
 
 notes.md
+tests
+client*/
 !tests/build.sh
 !tests/tests-chat.tar
 !tests/autograde-chat-with-files.tar
 !tests/*.tar
-tests
-client1
-client2
-client3
