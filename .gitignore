@@ -428,3 +428,4 @@ client3
 !tests/tests-chat.tar
 !tests/autograde-chat-with-files.tar
 !tests/*.tar
+build.sh
