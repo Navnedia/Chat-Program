@@ -38,28 +38,36 @@ public class ChatClient {
     public static void main(String[] args) {
         parseArguments(args); // Parse command line arguments to extract run configuration.
 
-        // Create socket connection to the server and run threads for simultaneous sending/receiving:
-        // Start the chat and file transfer functionality.
+        /*
+         *  Create socket connection to the chat server and send over connection details with the
+         *  local file listen server port. Then launch separate threads for sending messages, receiving
+         *  messages, and handling file transfer request, so we can do operations simultaneously.
+         *
+         * Incoming file request will be sent to the separate local server socket. Outgoing file
+         * requests will be sent as a new connection to the same chat server port using the request
+         * objects to distinguish types of requests.
+        */
         try {
-//            System.out.println("Waiting for request from server..."); //! DO I NEED THIS?
+//            System.out.println("Connecting to the chat server..."); //! DEBUG
             Socket clientSocket = new Socket(serverHost, serverPort); // Create socket and connect to the chat server on the specified host/port.
             ServerSocket serverSocket = new ServerSocket(listenPort); // Create local listen server for file requests.
 
-            String username = getUsername(); // Prompt user to select a chat display name.
+            BufferedReader stdinBuffer = new BufferedReader(new InputStreamReader(System.in)); // A buffer to read in standard input line-by-line.
+
+            String username = getUsername(stdinBuffer); // Prompt user to select a chat display name.
             if (username == null) { return; }
 
-//            System.out.println("Sending name and data the to server..."); //! DO I NEED THIS?
-            // Forward the join request with the client username and local server port number to the chat server:
+            // Forward the join request object with the client username and local server port number to the chat server:
+//            System.out.println("Sending name and data the to server..."); //! DEBUG
             ObjectOutputStream socketOut = new ObjectOutputStream(clientSocket.getOutputStream());
             socketOut.writeObject(new JoinChatRequest(username, listenPort));
 
-            //! I MIGHT WANT TO MODIFY THE FileRequestHandler to use multiple threads for concurrent requests.
             // Start the workers to send and receive messages and file data with socket connections:
             // The fileRequestHandler runs in a separate thread so the application can handle messages and file requests separately.
             Thread fileRequestHandler = new Thread(new FileRequestHandler(serverSocket));
             fileRequestHandler.start();
-            // The sender runs on a separate Thread  to allow the application to send and receive at the same time.
-            Thread sender = new Thread(new Sender(clientSocket, clientSocket.getInetAddress(), serverPort));
+            // The sender runs on a separate Thread to allow the application to send and receive at the same time.
+            Thread sender = new Thread(new Sender(clientSocket, clientSocket.getInetAddress(), serverPort, stdinBuffer));
             sender.start();
             // The receiver will run on the main thread, so we can call run directly since it isn't wrapped in a Thread.
             Receiver receiver = new Receiver(clientSocket);
@@ -78,9 +86,7 @@ public class ChatClient {
      * @return username string from the standard input.
      * @throws IOException if an I/O exception occurs.
      */
-    public static String getUsername() throws IOException {
-        // Buffer to read in Standard input from user line-by-line.
-        BufferedReader stdinBuffer = new BufferedReader(new InputStreamReader(System.in));
+    public static String getUsername(BufferedReader stdinBuffer) throws IOException {
         System.out.println("What is your name?"); // Prompt client to give a username.
         return stdinBuffer.readLine();
     }
@@ -117,6 +123,7 @@ public class ChatClient {
         }
     }
 
+    /** Prints error message to show how to properly use this program and exits. */
     public static void printUsage() {
         System.out.println("\nInvalid or missing arguments!\nUsage:" +
                 "\n\tjava ChatClient <port> [host]\n");

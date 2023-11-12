@@ -6,11 +6,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.ServerSocket;
 
-
-//! We might want to refactor and break requests into separate threads, the FileRequestListener, and the FileRequestHandler.
-
-
-
+//! To handle concurrent file requests, we might want to refactor and break requests into separate threads, the FileRequestListener, and the FileRequestHandler.
 
 /**
  * A FileRequestHandler waits for incoming {@link Socket} connections then handles the file
@@ -46,43 +42,47 @@ public class FileRequestHandler implements Runnable {
     public void run() {
         try {
             while (true) { // Loop to process incoming file requests:
-                Socket fileSocket = fileRequestSocket.accept();
-                // Input & output streams to send and receive data from the socket connection.
-                DataInputStream socketIn = new DataInputStream(fileSocket.getInputStream());
-                DataOutputStream socketOut = new DataOutputStream(fileSocket.getOutputStream());
+                try {
+                    Socket fileSocket = fileRequestSocket.accept();
+                    // Input & output streams to send and receive data from the socket connection.
+                    DataInputStream socketIn = new DataInputStream(fileSocket.getInputStream());
+                    DataOutputStream socketOut = new DataOutputStream(fileSocket.getOutputStream());
 
-                String filename = socketIn.readUTF(); // Get the requested filename.
+                    String filename = socketIn.readUTF(); // Get the requested filename.
 //                System.out.println("Received request for: " + filename); // DEBUG
-                File file = new File(filename);
-                if (file.exists() && file.canRead()) { // Send back the file size if it exists.
-                    long fileSize = file.length();
-                    if (fileSize > 0) {
-                        socketOut.writeLong(fileSize);
+                    File file = new File(filename);
+                    if (file.exists() && file.canRead()) { // Send back the file size if it exists.
+                        long fileSize = file.length();
+                        if (fileSize > 0) {
+                            socketOut.writeLong(fileSize);
+                        } else {
+                            socketOut.writeLong(0L);
+                            fileSocket.shutdownOutput();
+                            fileSocket.close();
+                            continue;
+                        }
                     } else {
                         socketOut.writeLong(0L);
+                        fileSocket.shutdownOutput();
+                        fileSocket.close();
                         continue;
                     }
-                } else {
-                    socketOut.writeLong(0L);
-                    continue;
-                }
 //                System.out.println("Sending: " + filename); // DEBUG
 
-                // Read file into buffer and send over the socket in pieces:
-                int bytesRead;
-                byte[] fileBuffer = new byte[1500];
-                FileInputStream fileInput = new FileInputStream(file);
-                while ((bytesRead = fileInput.read(fileBuffer)) != -1) {
+                    // Read file into buffer and send over the socket in pieces:
+                    int bytesRead;
+                    byte[] fileBuffer = new byte[1500];
+                    FileInputStream fileInput = new FileInputStream(file);
+                    while ((bytesRead = fileInput.read(fileBuffer)) != -1) {
 //                    System.out.println(bytesRead + " bytes read"); // DEBUG
-                    socketOut.write(fileBuffer, 0, bytesRead);
-                }
-                fileInput.close();
+                        socketOut.write(fileBuffer, 0, bytesRead);
+                    }
+                    fileInput.close();
 
-                fileSocket.shutdownOutput();
-                fileSocket.close();
+                    fileSocket.shutdownOutput();
+                    fileSocket.close();
+                } catch (IOException ignored) { }
             }
-        } catch (IOException e) { //! MAYBE WE WANT AN INNER TRY CATCH TO AVOID A CRASH.
-            System.exit(0); // Other side of the socket shutdown. Time to exit.
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new RuntimeException(e);

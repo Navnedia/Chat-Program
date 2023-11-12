@@ -16,22 +16,24 @@ import java.net.Socket;
 public class ServerClientHandler implements Runnable {
 
     private final Socket clientSocket;
+    private final String clientUsername;
 
     /**
-     * Creates ServerClientHandler that uses the supplied Socket to
-     * receive messages from the user, then forwards the
-     * messages to the other clients.
+     * Creates ServerClientHandler that uses the supplied Socket to receive messages from
+     * the user, then forwards the messages to the other clients.
      *
      * @param clientSocket the active {@link Socket} connection object.
+     * @param clientUsername the chat client username.
      */
-    public ServerClientHandler(Socket clientSocket) {
+    public ServerClientHandler(Socket clientSocket, String clientUsername) {
         this.clientSocket = clientSocket;
+        this.clientUsername = clientUsername;
     }
 
     /**
      * Executes the client handler functionality to wait for incoming messages from the socket
      * connection, and then forward the messages to other connected clients. Exits the thread
-     * and removes itself from the connected clients list when the chat client closes the
+     * and removes itself from the connected clients lists when the chat client closes the
      * socket connection.
      */
     @Override
@@ -40,10 +42,10 @@ public class ServerClientHandler implements Runnable {
         try {
             // Input stream to read in data from the socket connection.
             DataInputStream socketIn = new DataInputStream(clientSocket.getInputStream());
-            String clientUsername = socketIn.readUTF(); // The first message is set as the username.
 
             while (true) { // Read in loop waiting to receive messages:
                 String message = socketIn.readUTF();
+                System.out.println(clientUsername + ": " + message); //! DEBUG
                 // Block thread execution to avoid race condition on shared client list.
                 synchronized (ChatServer.connectedClients) {
                     // Retransmit the message to each connected client, but NOT back to the original sender:
@@ -61,16 +63,25 @@ public class ServerClientHandler implements Runnable {
             }
         } catch (IOException e) {
             // Client shutdown the socket connection to the chat server. Remove client from list and exit handler thread:
+            // Synchronize and block thread execution to avoid race condition on shared client list.
             synchronized (ChatServer.connectedClients) { // Block thread execution to avoid race condition on shared client list.
                 ChatServer.connectedClients.remove(clientSocket);
             }
+            synchronized (ChatServer.clientFileServers) { // Block thread execution to avoid race condition on shared client list.
+                ChatServer.clientFileServers.remove(clientUsername);
+            }
         } catch (Exception e) {
             // Always properly close socket and remove dead connections from the list before exiting the thread:
+            // Synchronize and block thread execution to avoid race condition on shared client list.
             try {
-                synchronized (ChatServer.connectedClients) { // Block thread execution to avoid race condition on shared client list.
+                synchronized (ChatServer.connectedClients) {
                     ChatServer.connectedClients.remove(clientSocket);
                 }
-                clientSocket.shutdownOutput();
+                synchronized (ChatServer.clientFileServers) {
+                    ChatServer.clientFileServers.remove(clientUsername);
+                }
+
+                clientSocket.shutdownInput();
                 clientSocket.close();
             } catch (IOException ignored) { }
             System.out.println(e.getMessage());

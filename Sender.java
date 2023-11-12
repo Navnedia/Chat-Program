@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.Socket;
 
@@ -20,19 +19,22 @@ public class Sender implements Runnable {
     private final Socket clientSocket;
     private final InetAddress fileServerAddress;
     private final int fileServerPort;
+    private final BufferedReader stdinBuffer;
 
     /**
      * Creates a Sender that uses user input from stdin to carry out operations
      * for messages and file transfer over socket connections.
      *
      * @param clientSocket the active {@link Socket} connection object for text messages.
-     * @param fileServerAddress the remote IP address of the client for file transfer.
-     * @param fileServerPort the port number of the clients socket for file transfer.
+     * @param fileServerAddress the remote IP address of the chat server address for file transfer.
+     * @param fileServerPort the port number of the remote chat server socket for file transfer.
+     * @param stdinBuffer a standard input buffer reader to get input from the user line-by-line.
      */
-    public Sender(Socket clientSocket, InetAddress fileServerAddress, int fileServerPort) {
+    public Sender(Socket clientSocket, InetAddress fileServerAddress, int fileServerPort, BufferedReader stdinBuffer) {
         this.clientSocket = clientSocket;
         this.fileServerAddress = fileServerAddress;
         this.fileServerPort = fileServerPort;
+        this.stdinBuffer = stdinBuffer;
     }
 
     /**
@@ -41,8 +43,6 @@ public class Sender implements Runnable {
     @Override
     public void run() {
         try {
-            // Buffer to read in Standard input from user line-by-line.
-            BufferedReader stdinBuffer = new BufferedReader(new InputStreamReader(System.in));
             // Output stream for sending data over the socket connection.
             DataOutputStream socketOut = new DataOutputStream(clientSocket.getOutputStream());
 
@@ -58,7 +58,7 @@ public class Sender implements Runnable {
                     if ((message = stdinBuffer.readLine()) == null) { break; }
 
                     socketOut.writeUTF(message);
-//                    System.out.println("Sending Message: " + input); // DEBUG
+//                    System.out.println("Sending Message: " + message); //! DEBUG
                 } else if (operation.equalsIgnoreCase("f")) { // File transfer operation:
                     System.out.println("Who owns the file?");
                     if ((fileOwner = stdinBuffer.readLine()) == null) { break; }
@@ -72,9 +72,8 @@ public class Sender implements Runnable {
                 }
             }
 
-//            System.out.println("closing your sockets...goodbye"); //! DO I NEED THIS?
-
             // The user closed the standard input, so we close the output stream, the socket, and then exit the program:
+            System.out.println("closing your sockets...goodbye");
             clientSocket.shutdownOutput();
             clientSocket.close();
             System.exit(0);
