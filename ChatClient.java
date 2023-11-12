@@ -17,7 +17,7 @@ import java.net.Socket;
  *     </li>
  *     <li>Run the client by first supplying a listening port to send and receive files on.
  *          Then specify the desired port and host of the chat server you wish to connect to:<br>
- *          <strong>{@code java MessengerWithFiles -l <listening port number> -p <connect server port>
+ *          <strong>{@code java ChatClient -l <listening port number> -p <connect server port>
  *              [-s] [connect server address]}</strong>.
  *     </li>
  *     <li>Enter a client username when prompted.</li>
@@ -126,7 +126,8 @@ public class ChatClient {
     /** Prints error message to show how to properly use this program and exits. */
     public static void printUsage() {
         System.out.println("\nInvalid or missing arguments!\nUsage:" +
-                "\n\tjava ChatClient <port> [host]\n");
+                "\n\tjava ChatClient -l <listening port number> -p <connect server port>\n" +
+                " [-s] [connect server address]\n");
         System.exit(0);
     }
 }

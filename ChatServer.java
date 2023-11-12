@@ -139,7 +139,7 @@ public class ChatServer {
     /** Prints error message to show how to properly use this program and exits. */
     public static void printUsage() {
         System.out.println("\nInvalid or missing arguments!\nUsage:" +
-                "\n\tjava ChatServer [-l] <port>\n");
+                "\n\tjava ChatServer <port>\n");
         System.exit(0);
     }
 }
