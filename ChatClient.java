@@ -126,8 +126,8 @@ public class ChatClient {
     /** Prints error message to show how to properly use this program and exits. */
     public static void printUsage() {
         System.out.println("\nInvalid or missing arguments!\nUsage:" +
-                "\n\tjava ChatClient -l <listening port number> -p <connect server port>\n" +
-                " [-s] [connect server address]\n");
+                "\n\tjava ChatClient -l <listening port number> -p <connect server port> " +
+                "[-s] [connect server address]\n");
         System.exit(0);
     }
 }
