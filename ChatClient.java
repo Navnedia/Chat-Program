@@ -101,7 +101,7 @@ public class ChatClient {
     public static void parseArguments(String[] args) {
         try {
             for (int i = 0; i < args.length; i++) {
-                switch (args[i]) {
+                switch (args[i].toLowerCase()) {
                     case "-l": // Listening port (required):
                         listenPort = Integer.parseInt(args[++i]);
                         break;
